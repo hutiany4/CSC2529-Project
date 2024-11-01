@@ -14,8 +14,8 @@ datasets:
   test_1:  # the 1st test dataset
     name: VIDIT
     type: PairedImageDataset
-    dataroot_gt: ./data/one2one/validation/target
-    dataroot_input: ./data/one2one/validation/input
+    dataroot_gt: ./data/validation/target
+    dataroot_input: ./data/validation/input
 
 
 # network structures
