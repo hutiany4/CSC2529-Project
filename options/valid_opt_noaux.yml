@@ -1,0 +1,45 @@
+name: valid_one2one_noaux
+model_type: PyramidRelightingModel
+layers: 1
+scale_factor: 2
+interp_mode: bicubic
+gpu_id: '0'
+scale: 1
+crop_border: ~  
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+rank: 0
+parallel: False
+datasets:
+  test_1:  # the 1st test dataset
+    name: VIDIT
+    type: PairedImageDataset
+    dataroot_gt: ./data/one2one/validation/target
+    dataroot_input: ./data/one2one/validation/input
+
+
+# network structures
+network_g:
+  type: One2One_noaux
+
+
+val:
+  save_tb_img: false
+  save_tb_select: ~ 
+  save_img: true
+
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim: # metric name, can be arbitrary
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
+
+
+# path
+path:
+  pretrain_network_g: pretrained/VIDITOne2One.pth
+  strict_load_g: true
