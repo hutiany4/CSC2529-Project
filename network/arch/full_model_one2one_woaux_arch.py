@@ -18,7 +18,7 @@ def std_channels(F):
     F_mean = mean_channels(F)
     F_variance = (F - F_mean).pow(2).sum(3, keepdim=True).sum(2, keepdim=True) / (F.size(2) * F.size(3))
     return F_variance.pow(0.5)
-    
+
 
 class DirectAwareAtt(nn.Module):
     def __init__(self, channels=144, reduction=16):
@@ -47,7 +47,6 @@ class DirectAwareAtt(nn.Module):
         att = self.avg_att_module(avg) + self.std_att_module(avg_std)
         att = att / 2
         return att * x
-
 
 class DilateBlock(nn.Module):
     def __init__(self, channels):
@@ -105,7 +104,7 @@ class UpConv(nn.Module):
 
     def forward(self, x):
         return self.conv(F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=True))
-        
+
 
 class RGBEncoder(nn.Module):
     def __init__(self, in_channels, channels, filter_size):
@@ -149,7 +148,7 @@ class RGBEncoder(nn.Module):
 
         x1 = self.enc1(x0) #1/2 input size
         x1 = x1# + c_x1
-        if pre_x3 is not None: 
+        if pre_x3 is not None:
             x1 = x1 + F.interpolate(pre_x3, scale_factor=scale, mode='bilinear', align_corners=align_corners)
 
         x2 = self.enc2(x1) # 1/4 input size
@@ -161,74 +160,11 @@ class RGBEncoder(nn.Module):
         return x0, x1, x2
 
 
-class CondEncoder(nn.Module):
-    def __init__(self, in_channels, channels, filter_size):
-        super(CondEncoder, self).__init__()
-        in_channels += 2
-        padding = int((filter_size - 1) / 2)
-
-        self.init = nn.Sequential(nn.Conv2d(in_channels, channels, filter_size, stride=1, padding=padding),
-                                  nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, filter_size, stride=1, padding=padding))
-
-        self.enc1 = nn.Sequential(nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, conv_s2, stride=2, padding=pad0),
-                                  nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, filter_size, stride=1, padding=padding), )
-
-        self.enc2 = nn.Sequential(nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, conv_s2, stride=2, padding=pad0),
-                                  nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, filter_size, stride=1, padding=padding), )
-
-        self.enc3 = nn.Sequential(nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, conv_s2, stride=2, padding=pad0),
-                                  nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, filter_size, stride=1, padding=padding), )
-
-        self.enc4 = nn.Sequential(nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, conv_s2, stride=2, padding=pad0),
-                                  nn.ReLU(True),
-                                  nn.Conv2d(channels, channels, filter_size, stride=1, padding=padding), )
-
-        # Init Weights
-        for m in self.modules():
-            if isinstance(m, nn.Sequential):
-                for p in m:
-                    if isinstance(p, nn.Conv2d) or isinstance(p, nn.ConvTranspose2d):
-                        nn.init.xavier_normal_(p.weight)
-                        nn.init.constant_(p.bias, 0.01)
-
-    def forward(self, input, scale=2, pre_x=None):
-        ### input
-        b, _, h, w = input.shape
-        x_code = torch.Tensor([float(x)/(w-1) for x in range(w)]).float().cuda() * 2 - 1
-        y_code = torch.Tensor([float(y)/(h-1) for y in range(h)]).float().cuda() * 2 - 1
-        grid_y, grid_x = torch.meshgrid(y_code, x_code)
-
-        grid_y = grid_y.view(1,1,h,w).expand(b,1,h,w)
-        grid_x = grid_x.view(1,1,h,w).expand(b,1,h,w)
-
-        input = torch.cat([grid_x, grid_y], 1)
-        x0 = self.init(input)
-
-        if pre_x is not None:
-            x0 = x0 + F.interpolate(pre_x, scale_factor=scale, mode='bilinear', align_corners=align_corners)
-
-        x1 = self.enc1(x0)  # 1/2 input size
-        x2 = self.enc2(x1)  # 1/4 input size
-        x3 = self.enc3(x2)  # 1/8 input size
-        x4 = self.enc4(x3)  # 1/16 input size
-
-        # return the pre-activated features
-        return x0, x1, x2, x3, x4
-
-
 class RGBDecoder(nn.Module):
     def __init__(self, channels, filter_size):
         super(RGBDecoder, self).__init__()
         padding = int((filter_size-1)/2)
- 
+
         self.dec2 = nn.Sequential(nn.ReLU(True),
                                   nn.Conv2d(channels//2, channels//2, filter_size, stride=1, padding=padding),
                                   nn.ReLU(True),
@@ -270,7 +206,7 @@ class RGBDecoder(nn.Module):
         x3 = self.dec2(x2) # 1/2 input size
         if pre_x3 != None:
             x3 = x3 + F.interpolate(pre_x3, scale_factor=2, mode='bilinear', align_corners=align_corners)
-        
+
         x4 = self.dec1(x1+x3) #1/1 input size
         if pre_x4 != None:
             x4 = x4 + F.interpolate(pre_x4, scale_factor=2, mode='bilinear', align_corners=align_corners)
@@ -278,7 +214,10 @@ class RGBDecoder(nn.Module):
         output_rgb = self.prdct(x4 + x0)
 
         return x2, x3, x4, output_rgb
-
+def fft(x):
+  fft_x = torch.fft.fft2(x)
+  fft_x = fft_x.real
+  return torch.cat([x, fft_x], 1)
 
 class One2One_noaux(nn.Module):
     def __init__(self, in_channels=3, short_connection=True):
@@ -292,7 +231,7 @@ class One2One_noaux(nn.Module):
 
         # self.cond_encoder = CondEncoder(0, cenc_channels, 3)
 
-        self.rgb_encoder1 = RGBEncoder(in_channels, denc_channels, 3)
+        self.rgb_encoder1 = RGBEncoder(2*in_channels, denc_channels, 3)
         self.rgb_decoder1 = RGBDecoder(ddcd_channels, 3)
 
         self.rgb_encoder2 = RGBEncoder(2*in_channels, denc_channels, 3)
@@ -308,8 +247,8 @@ class One2One_noaux(nn.Module):
         ## for the 1/4 res
         input_rgb14 = F.interpolate(input_rgb, scale_factor=0.25, mode='bilinear',align_corners=align_corners)
         # print(enc_c[2].shape)
-        enc_rgb14 = self.rgb_encoder1(input_rgb14, 2)  # enc_rgb [larger -> smaller size] 
-        dcd_rgb14 = self.rgb_decoder1(enc_rgb14) # dec_rgb [smaller -> larger size] 
+        enc_rgb14 = self.rgb_encoder1(fft(input_rgb14), 2)  # enc_rgb [larger -> smaller size]
+        dcd_rgb14 = self.rgb_decoder1(enc_rgb14) # dec_rgb [smaller -> larger size]
 
         ## for the 1/2 res
         input_rgb12 = F.interpolate(input_rgb, scale_factor=0.5, mode='bilinear', align_corners=align_corners)
@@ -319,7 +258,7 @@ class One2One_noaux(nn.Module):
         predict_rgb12 = F.interpolate(ori_pred_rgb14, scale_factor=2, mode='bilinear', align_corners=align_corners)
         input_12 = torch.cat((input_rgb12, predict_rgb12), 1)
 
-        enc_rgb12 = self.rgb_encoder2(input_12, 2) 
+        enc_rgb12 = self.rgb_encoder2(input_12, 2)
         dcd_rgb12 = self.rgb_decoder2(enc_rgb12, dcd_rgb14[0], dcd_rgb14[1], dcd_rgb14[2])
 
         ## for the 1/1 res
