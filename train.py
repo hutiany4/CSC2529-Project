@@ -158,7 +158,7 @@ def main():
     for epoch in range(start_epoch, total_epochs + 1):
         train_sampler.set_epoch(epoch)
         iter_trainloader = iter(train_loader)
-        train_data = iter_trainloader.next()
+        train_data = next(iter_trainloader)
         while train_data is not None:
             data_time = time.time() - data_time
 
@@ -193,7 +193,7 @@ def main():
             data_time = time.time()
             iter_time = time.time()
             try:
-                train_data = iter_trainloader.next()
+                train_data = next(iter_trainloader)
             except StopIteration:
                 train_data = None
         # end of iter

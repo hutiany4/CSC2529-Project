@@ -56,7 +56,7 @@ train:
     weight_decay: 0
     betas: [0.9, 0.99]
 
-  total_iter: 36000
+  total_iter: 10000
   warmup_iter: -1  # no warm up
   decay_freq: 36000 # no decay
   gamma: 0.5
