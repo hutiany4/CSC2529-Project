@@ -286,8 +286,8 @@ class One2One_noaux(nn.Module):
 
         self.short_connection = short_connection
         self.in_channels = in_channels
-        denc_channels = 6
-        cenc_channels = 6
+        denc_channels = 24
+        cenc_channels = 24
         ddcd_channels = denc_channels+cenc_channels
 
         # self.cond_encoder = CondEncoder(0, cenc_channels, 3)
