@@ -17,9 +17,9 @@ datasets:
     name: VIDIT
     type: PairedImageDataset
     dataroot_gt: 
-    - ./data/one2one/train/target
+    - ./data/train/target
     dataroot_input:
-    - ./data/one2one/train/input
+    - ./data/train/input
 
     gt_size: 0
     use_flip: false
@@ -35,8 +35,8 @@ datasets:
   val:
     name: VIDIT
     type: PairedImageDataset
-    dataroot_gt: ./data/one2one/validation/target
-    dataroot_input: ./data/one2one/validation/input
+    dataroot_gt: ./data/validation/target
+    dataroot_input: ./data/validation/input
 
 # network structures
 network_g:

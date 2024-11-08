@@ -27,22 +27,34 @@ class PairedImageDataset(data.Dataset):
         self.paths = []
         if opt.get('dataroot_pinput') == None:
             opt['dataroot_pinput'] = opt['dataroot_input']
+        
+        if opt.get('test_mode') == None:
+            self.test_mode = False
+        else:
+            self.test_mode = opt['test_mode']
 
         if isinstance(opt['dataroot_pinput'], list) == False:
             opt['dataroot_pinput'] = [opt['dataroot_pinput']]
         
         for i in range(len(opt['dataroot_pinput'])):
-            self.gt_folder, self.input_folder = opt['dataroot_gt'][i], opt['dataroot_pinput'][i]
+            if self.test_mode:
+                self.input_folder = opt['dataroot_input'][i]
+            else:
+                self.gt_folder, self.input_folder = opt['dataroot_gt'][i], opt['dataroot_input'][i]
+        
             if 'filename_tmpl' in opt:
                 self.filename_tmpl = opt['filename_tmpl']
             else:
                 self.filename_tmpl = '{}'
 
-
-            self.paths += paired_paths_from_folder(
-                [self.input_folder, self.gt_folder], ['input', 'gt'],
-                self.filename_tmpl)
-            # print(self.paths)
+            if self.test_mode:
+                self.paths += paired_paths_from_folder(
+                    [self.input_folder, None], ['input', None],
+                    self.filename_tmpl)
+            else:
+                self.paths += paired_paths_from_folder(
+                    [self.input_folder, self.gt_folder], ['input', 'gt'],
+                    self.filename_tmpl)
        
 
     def __getitem__(self, index):
@@ -50,8 +62,9 @@ class PairedImageDataset(data.Dataset):
 
         # Load gt and input images. Dimension order: HWC; channel order: BGR;
         # image range: [0, 1], float32.
-        gt_path = self.paths[index]['gt_path']
-        img_gt = imread(gt_path)
+        if not self.test_mode:
+            gt_path = self.paths[index]['gt_path']
+            img_gt = imread(gt_path)
         input_path = self.paths[index]['input_path']
         img_input = imread(input_path)
 
@@ -66,18 +79,31 @@ class PairedImageDataset(data.Dataset):
             img_gt, img_input = augment([img_gt, img_input], self.opt['use_flip'],
                                      self.opt['use_rot'])
 
-
         # BGR to RGB, HWC to CHW, numpy to tensor
-        img_gt, img_input = img2tensor([img_gt, img_input],
+        if self.test_mode:
+            img_input = img2tensor(img_input,
+                                    bgr2rgb=True,
+                                    float32=True)
+            img_gt = None
+            gt_path = None
+        else:
+            img_gt, img_input = img2tensor([img_gt, img_input],
                                     bgr2rgb=True,
                                     float32=True)
 
-        return {
-            'input': img_input,
-            'gt': img_gt,
-            'input_path': input_path,
-            'gt_path': gt_path
-        }
+        
+        if img_gt != None:
+            return {
+                'input': img_input,
+                'gt': img_gt,
+                'input_path': input_path,
+                'gt_path': gt_path
+            }
+        else:
+            return {
+                'input': img_input,
+                'input_path': input_path,
+            }
 
     def __len__(self):
         return len(self.paths)
