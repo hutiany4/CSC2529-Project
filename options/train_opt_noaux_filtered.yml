@@ -40,7 +40,7 @@ datasets:
 
 # network structures
 network_g:
-  type: "One2One_noaux"
+  type: "One2One_noaux_flitered"
 
 # path
 path:

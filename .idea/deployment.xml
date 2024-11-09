@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" serverName="root@connect.nmb1.seetacloud.com:36677 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="arima">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@connect.nmb1.seetacloud.com:36677 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_53" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
