@@ -214,10 +214,10 @@ class RGBDecoder(nn.Module):
         output_rgb = self.prdct(x4 + x0)
 
         return x2, x3, x4, output_rgb
-def fft(x):
-  fft_x = torch.fft.fft2(x)
-  fft_x = fft_x.real
-  return torch.cat([x, fft_x], 1)
+# def fft(x):
+#   fft_x = torch.fft.fft2(x)
+#   fft_x = fft_x.real
+#   return torch.cat([x, fft_x], 1)
 
 class One2One_noaux(nn.Module):
     def __init__(self, in_channels=3, short_connection=True):
@@ -231,7 +231,7 @@ class One2One_noaux(nn.Module):
 
         # self.cond_encoder = CondEncoder(0, cenc_channels, 3)
 
-        self.rgb_encoder1 = RGBEncoder(2*in_channels, denc_channels, 3)
+        self.rgb_encoder1 = RGBEncoder(in_channels, denc_channels, 3)
         self.rgb_decoder1 = RGBDecoder(ddcd_channels, 3)
 
         self.rgb_encoder2 = RGBEncoder(2*in_channels, denc_channels, 3)
@@ -247,7 +247,7 @@ class One2One_noaux(nn.Module):
         ## for the 1/4 res
         input_rgb14 = F.interpolate(input_rgb, scale_factor=0.25, mode='bilinear',align_corners=align_corners)
         # print(enc_c[2].shape)
-        enc_rgb14 = self.rgb_encoder1(fft(input_rgb14), 2)  # enc_rgb [larger -> smaller size]
+        enc_rgb14 = self.rgb_encoder1(input_rgb14, 2)  # enc_rgb [larger -> smaller size]
         dcd_rgb14 = self.rgb_decoder1(enc_rgb14) # dec_rgb [smaller -> larger size]
 
         ## for the 1/2 res
