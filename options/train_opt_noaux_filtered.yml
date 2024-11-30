@@ -1,4 +1,4 @@
-name: One2One
+name: One2OneFiltered
 model_type: PyramidRelightingModel
 layers: 3
 scale_factor: 2
@@ -58,7 +58,7 @@ train:
 
   total_iter: 10000
   warmup_iter: -1  # no warm up
-  decay_freq: 36000 # no decay
+  decay_freq: 10000 # no decay
   gamma: 0.5
 
   # losses

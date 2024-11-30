@@ -1,4 +1,4 @@
-name: One2One
+name: One2OneEncoder
 model_type: PyramidRelightingModel
 layers: 3
 scale_factor: 2
@@ -17,9 +17,9 @@ datasets:
     name: VIDIT
     type: PairedImageDataset
     dataroot_gt: 
-    - ./data/one2one/train/target
+    - ./data/train/target
     dataroot_input:
-    - ./data/one2one/train/input
+    - ./data/train/input
 
     gt_size: 0
     use_flip: false
@@ -35,12 +35,12 @@ datasets:
   val:
     name: VIDIT
     type: PairedImageDataset
-    dataroot_gt: ./data/one2one/validation/target
-    dataroot_input: ./data/one2one/validation/input
+    dataroot_gt: ./data/validation/target
+    dataroot_input: ./data/validation/input
 
 # network structures
 network_g:
-  type: "One2One_noaux"
+  type: "One2One_noaux_encoder"
 
 # path
 path:
@@ -58,7 +58,7 @@ train:
 
   total_iter: 10000
   warmup_iter: -1  # no warm up
-  decay_freq: 36000 # no decay
+  decay_freq: 10000 # no decay
   gamma: 0.5
 
   # losses

@@ -1,4 +1,4 @@
-name: test_one2one_noaux
+name: test_one2one_noaux_fftchannel
 model_type: PyramidRelightingModel
 layers: 3
 scale_factor: 2
