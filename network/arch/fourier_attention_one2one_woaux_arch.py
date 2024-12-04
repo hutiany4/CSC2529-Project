@@ -1,7 +1,7 @@
 import torch
+import torch.fft
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.fft import fft2, ifft2
 
 conv_s2 = 4
 pad0 = 1
@@ -46,12 +46,12 @@ class DirectAwareAtt(nn.Module):
         )
 
     def apply_fourier_attention(self, x):
-        x_fft = fft2(x)
+        x_fft = torch.fft.fftn(x, dim=(-2, -1))
         x_magnitude = torch.abs(x_fft)
 
         fourier_att = self.fourier_att_module(x_magnitude)
         combined_fft = x_fft * fourier_att
-        fourier_att_spatial = ifft2(combined_fft).real
+        fourier_att_spatial = torch.fft.ifftn(combined_fft, dim=(-2, -1)).real
 
         return fourier_att_spatial
 

@@ -214,10 +214,6 @@ class RGBDecoder(nn.Module):
         output_rgb = self.prdct(x4 + x0)
 
         return x2, x3, x4, output_rgb
-# def fft(x):
-#   fft_x = torch.fft.fft2(x)
-#   fft_x = fft_x.real
-#   return torch.cat([x, fft_x], 1)
 
 class One2One_noaux(nn.Module):
     def __init__(self, in_channels=3, short_connection=True):

@@ -215,7 +215,7 @@ class RGBDecoder(nn.Module):
 
         return x2, x3, x4, output_rgb
 def fft(x):
-  fft_x = torch.fft.fft2(x)
+  fft_x = torch.fft.fftn(x, dim=(-2, -1))
   fft_x = fft_x.real
   return torch.cat([x, fft_x], 1)
 
