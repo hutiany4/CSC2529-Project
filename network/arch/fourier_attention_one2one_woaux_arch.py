@@ -38,6 +38,8 @@ class DirectAwareAtt(nn.Module):
              nn.Conv2d(channels // reduction, channels, 1, 1, 0),
              nn.Sigmoid()
         )
+        # Fourier attention module:
+        # A two-layer feedforward network applied to frequency domain magnitude
         self.fourier_att_module = nn.Sequential(
             nn.Conv2d(channels, channels // reduction, 1, 1, 0),
             nn.ReLU(True),
@@ -46,24 +48,40 @@ class DirectAwareAtt(nn.Module):
         )
 
     def apply_fourier_attention(self, x):
+        # Compute the Fourier transform of the input across spatial dimensions (-2 and -1)
         x_fft = torch.fft.fftn(x, dim=(-2, -1))
+
+        # Compute the magnitude (absolute value) of the frequencies
         x_magnitude = torch.abs(x_fft)
 
+        # Pass the magnitude through the Fourier attention module to compute attention weights
         fourier_att = self.fourier_att_module(x_magnitude)
+
+        # Multiply the frequencies by the attention weights
         combined_fft = x_fft * fourier_att
+
+        # Apply the inverse Fourier transform to bring the data back to the spatial domain
         fourier_att_spatial = torch.fft.ifftn(combined_fft, dim=(-2, -1)).real
 
         return fourier_att_spatial
 
 
     def forward(self, x):
+
+        # # Combination of spatial and frequency attention mechanisms, commented out due to computational cost
         # avg_std = self.std(x)   # calculates the standard deviation for each channel
         # avg = self.avg_pool(x)  # computes the mean value for each channel
         # att = self.avg_att_module(avg) + self.std_att_module(avg_std)
         # att = att / 2
+
+        # # Apply spatial attention to the input
         # spatial_output = att * x
+
+        # # Apply Fourier attention to the input
         # fourier_output_spatial = self.apply_fourier_attention(x)
-        # fourier_rate = 0.2
+
+        # # Combine spatial and Fourier attention outputs using a weighted sum
+        # fourier_rate = 0.2  # Weight for Fourier attention
         # combined_output = (1 - fourier_rate) * spatial_output + fourier_rate * fourier_output_spatial
 
         # use only fourier attention map
