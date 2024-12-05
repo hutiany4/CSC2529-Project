@@ -15,7 +15,7 @@ datasets:
     name: VIDIT
     type: PairedImageDataset
     test_mode: true
-    dataroot_input: ./data/one2one/validation/input
+    dataroot_input: ./data/validation/input
 
 
 
