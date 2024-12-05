@@ -161,10 +161,12 @@ class RGBEncoder(nn.Module):
         x2 = self.bottleneck(x2)
         return x0, x1, x2
 
-
+# The frequency domain feature encoder
 class FourierEncoder(nn.Module):
     def __init__(self, in_channels, channels, filter_size):
         super(FourierEncoder, self).__init__()
+
+        # shrink the input by half after convolution
         padding = int((filter_size - 1) / 2)
 
         self.init = nn.Sequential(nn.Conv2d(in_channels, channels, filter_size, stride=1, padding=padding),
@@ -207,6 +209,7 @@ class FourierEncoder(nn.Module):
         x3 = self.enc3(x2)  # 1/8 input size
         x4 = self.enc4(x3)  # 1/16 input size
 
+        # transfer the output back to rgb domain for better combination
         x0 = torch.real(torch.fft.ifftn(x0, dim=(-2, -1)))
         x1 = torch.real(torch.fft.ifftn(x1, dim=(-2, -1)))
         x2 = torch.real(torch.fft.ifftn(x2, dim=(-2, -1)))
@@ -298,10 +301,15 @@ class One2One_noaux_encoder(nn.Module):
     def forward(self, x, enable_layers=None):
         x = x[0]
         input_rgb=x
+
+        # put the input into frequency encoder
         input_fourier = torch.real(torch.fft.fftn(x, dim=(-2, -1)))
         enc_c = self.fourier_encoder(input_fourier)
+
         ## for the 1/4 res
         input_rgb14 = F.interpolate(input_rgb, scale_factor=0.25, mode='bilinear',align_corners=align_corners)
+
+        # combine the frequency encoder output to the rgb encoder
         enc_rgb14 = self.rgb_encoder1(input_rgb14, 2, enc_c[2], enc_c[3], enc_c[4])  # enc_rgb [larger -> smaller size] 
         dcd_rgb14 = self.rgb_decoder1(enc_rgb14) # dec_rgb [smaller -> larger size] 
 
@@ -313,6 +321,7 @@ class One2One_noaux_encoder(nn.Module):
         predict_rgb12 = F.interpolate(ori_pred_rgb14, scale_factor=2, mode='bilinear', align_corners=align_corners)
         input_12 = torch.cat((input_rgb12, predict_rgb12), 1)
 
+        # combine the frequency encoder output to the rgb encoder
         enc_rgb12 = self.rgb_encoder2(input_12, 2, enc_c[1], enc_c[2], enc_c[3]) 
         dcd_rgb12 = self.rgb_decoder2(enc_rgb12, dcd_rgb14[0], dcd_rgb14[1], dcd_rgb14[2])
 
@@ -323,6 +332,7 @@ class One2One_noaux_encoder(nn.Module):
         predict_rgb11 = F.interpolate(ori_pred_rgb12, scale_factor=2, mode='bilinear', align_corners=align_corners)
         input_11 = torch.cat((input_rgb, predict_rgb11), 1)
 
+        # combine the frequency encoder output to the rgb encoder
         enc_rgb11 = self.rgb_encoder3(input_11, 2, enc_c[0], enc_c[1], enc_c[2])
         dcd_rgb11 = self.rgb_decoder3(enc_rgb11, dcd_rgb12[0], dcd_rgb12[1], dcd_rgb12[2])
 

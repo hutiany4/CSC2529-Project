@@ -138,21 +138,18 @@ class RGBEncoder(nn.Module):
                         nn.init.xavier_normal_(p.weight)
                         nn.init.constant_(p.bias, 0.01)
 
-    def forward(self, input, scale=2, c_x0=None, c_x1=None, c_x2=None, pre_x2=None, pre_x3=None, pre_x4=None):
+    def forward(self, input, scale=2, pre_x2=None, pre_x3=None, pre_x4=None):
         ### input
 
         x0 = self.init(input)
-        x0 = x0# + c_x0
         if pre_x4 is not None:
             x0 = x0 + F.interpolate(pre_x4, scale_factor=scale, mode='bilinear', align_corners=align_corners)
 
         x1 = self.enc1(x0) #1/2 input size
-        x1 = x1# + c_x1
         if pre_x3 is not None:
             x1 = x1 + F.interpolate(pre_x3, scale_factor=scale, mode='bilinear', align_corners=align_corners)
 
         x2 = self.enc2(x1) # 1/4 input size
-        x2 = x2# + c_x2
         if pre_x2 is not None:
             x2 = x2 + F.interpolate(pre_x2, scale_factor=scale, mode='bilinear', align_corners=align_corners)
 
