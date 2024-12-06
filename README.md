@@ -8,7 +8,7 @@ This project aims to study and improve the result of the paper [Designing An Ill
 
 ## Usage
 
-+ We strongly suggested using pre-installed environments such as google collab for this repo
++ We strongly suggested using Google Collab for this repo. The default environment of Google Collab is suitable for this repo
 + If they are not available create the environment by `conda env create -f environment.yml`, but be warned that some conflicts might occur
 + Create `data` folder in the root directory with subfolders `train`, `validation`, and `test`
 + Download dataset from [VIDIT dataset](https://github.com/majedelhelou/VIDIT) and put data into according folders based on option files in `options`
