@@ -216,23 +216,30 @@ class RGBDecoder(nn.Module):
         return x2, x3, x4, output_rgb
 
 def fft(x):
-  fft_x = torch.fft.fftn(x, dim=(-2, -1))
+    fft_x = torch.fft.fftn(x, dim=(-2, -1))
+    # apply fourier transformation to each rgb channel
   
-  fft_shift_x = torch.fft.fftshift(fft_x)
+    fft_shift_x = torch.fft.fftshift(fft_x)
+    # fourier shift
 
-  filter_mat = torch.zeros_like(fft_x)
-  b,c,h,w = x.shape 
-  filter_mat[:,:,h//4:h//4*3,w//4:h//4*3] = 1
+    filter_mat = torch.zeros_like(fft_x)
+    b,c,h,w = x.shape
+    filter_mat[:,:,h//4:h//4*3,w//4:h//4*3] = 1
+    # define filter
 
-  filtered = fft_shift_x * filter_mat
-  
-  ifft_shift_x = torch.fft.ifftshift(filtered)
+    filtered = fft_shift_x * filter_mat
+    # filter the fourier tensor
 
-  ifft_x = torch.fft.ifftn(ifft_shift_x, dim=(-2, -1))
+    ifft_shift_x = torch.fft.ifftshift(filtered)
+    # inverse fourier shift
 
-  ifft_x = ifft_x.real
+    ifft_x = torch.fft.ifftn(ifft_shift_x, dim=(-2, -1))
+    # inverse fourier transform
 
-  return torch.cat([x, ifft_x], 1)
+    ifft_x = ifft_x.real
+    # get the real part of fourier tensor
+
+    return torch.cat([x, ifft_x], 1)
 
 class One2One_noaux_flitered(nn.Module):
     def __init__(self, in_channels=3, short_connection=True):
@@ -247,6 +254,8 @@ class One2One_noaux_flitered(nn.Module):
         # self.cond_encoder = CondEncoder(0, cenc_channels, 3)
 
         self.rgb_encoder1 = RGBEncoder(2*in_channels, denc_channels, 3)
+        # modify the input channel
+
         self.rgb_decoder1 = RGBDecoder(ddcd_channels, 3)
 
         self.rgb_encoder2 = RGBEncoder(2*in_channels, denc_channels, 3)
@@ -261,8 +270,10 @@ class One2One_noaux_flitered(nn.Module):
         input_rgb=x
         ## for the 1/4 res
         input_rgb14 = F.interpolate(input_rgb, scale_factor=0.25, mode='bilinear',align_corners=align_corners)
-        # print(enc_c[2].shape)
+
         enc_rgb14 = self.rgb_encoder1(fft(input_rgb14), 2)  # enc_rgb [larger -> smaller size]
+        # apply fft
+
         dcd_rgb14 = self.rgb_decoder1(enc_rgb14) # dec_rgb [smaller -> larger size]
 
         ## for the 1/2 res

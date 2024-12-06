@@ -258,7 +258,6 @@ class One2One_noaux_fftchannel(nn.Module):
         ## for the 1/4 res
         input_rgb14 = F.interpolate(input_rgb, scale_factor=0.25, mode='bilinear',align_corners=align_corners)
 
-
         enc_rgb14 = self.rgb_encoder1(fft(input_rgb14), 2)  # enc_rgb [larger -> smaller size]
         # apply fft
 
